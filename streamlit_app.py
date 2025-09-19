@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import numpy as np
+import os
 
 # -------------------- PAGE CONFIG --------------------
 st.set_page_config(
@@ -11,12 +12,16 @@ st.set_page_config(
     page_icon="📈",
     layout="wide"
 )
+
 # -------------------- DATA LOADING --------------------
 @st.cache_data  # This caches the data so it doesn't reload on every interaction
 def load_data():
-    # Load your generated dataset
-    df = pd.read_csv(r'C:\Users\Admin\Desktop\electronics_inventory_dataset_2022_2024.csv')
-    df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)  # Convert to datetime (DD-MM-YYYY) # Convert to datetime
+    # Load your generated dataset from the data folder
+    file_path = os.path.join('data', 'electronics_inventory_dataset_2022_2024.csv')
+    df = pd.read_csv(file_path)
+    
+    # FIXED: Explicitly define the date format (DD-MM-YYYY)
+    df['Date'] = pd.to_datetime(df['Date'], format='%d-%m-%Y')  # Convert to datetime
     return df
 
 df = load_data()
