@@ -11,12 +11,11 @@ st.set_page_config(
     page_icon="📈",
     layout="wide"
 )
-
 # -------------------- DATA LOADING --------------------
 @st.cache_data  # This caches the data so it doesn't reload on every interaction
 def load_data():
     # Load your generated dataset
-    df = pd.read_csv('data/electronics_inventory_dataset_2022_2024.csv')
+    df = pd.read_csv(r'C:\Users\Admin\Desktop\electronics_inventory_dataset_2022_2024.csv')
     df['Date'] = pd.to_datetime(df['Date'])  # Convert to datetime
     return df
 
