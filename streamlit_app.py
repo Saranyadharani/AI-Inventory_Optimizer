@@ -16,7 +16,7 @@ st.set_page_config(
 def load_data():
     # Load your generated dataset
     df = pd.read_csv(r'C:\Users\Admin\Desktop\electronics_inventory_dataset_2022_2024.csv')
-    df['Date'] = pd.to_datetime(df['Date'])  # Convert to datetime
+    df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)  # Convert to datetime (DD-MM-YYYY) # Convert to datetime
     return df
 
 df = load_data()
