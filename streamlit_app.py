@@ -180,6 +180,80 @@ with col_right:
             st.metric("**Safety Stock**", "452 units")
             st.metric("**Monthly Savings**", "₹3,548")
 
+# -------------------- NEW INTERACTIVE CHART EXPLORER SECTION --------------------
+st.markdown("---")
+st.subheader("🔍 Chart Explorer: Customize Your View")
+
+# User chooses how they want to see the data
+chart_col1, chart_col2, chart_col3 = st.columns(3)
+
+with chart_col1:
+    chart_type = st.selectbox(
+        "**Chart Type**",
+        ["Line", "Bar", "Area"],
+        help="Choose how to visualize the data"
+    )
+
+with chart_col2:
+    time_frame = st.selectbox(
+        "**Time Frame**",
+        ["Last 30 Days", "Last 90 Days", "Last Year", "All Time"],
+        index=3,  # Default to "All Time"
+        help="Focus on a specific period"
+    )
+
+with chart_col3:
+    view_by = st.radio(
+        "**View By**",
+        ["Daily", "Weekly", "Monthly"],
+        horizontal=True,
+        help="Aggregate data by time period"
+    )
+
+# Filter data based on user's time frame selection
+latest_date = component_data['Date'].max()
+if time_frame == "Last 30 Days":
+    start_date = latest_date - pd.DateOffset(days=30)
+    filtered_data = component_data[component_data['Date'] >= start_date]
+elif time_frame == "Last 90 Days":
+    start_date = latest_date - pd.DateOffset(days=90)
+    filtered_data = component_data[component_data['Date'] >= start_date]
+elif time_frame == "Last Year":
+    start_date = latest_date - pd.DateOffset(days=365)
+    filtered_data = component_data[component_data['Date'] >= start_date]
+else:  # "All Time"
+    filtered_data = component_data
+
+# Resample data based on user's "View By" selection
+if view_by == "Weekly":
+    # Group by week, summing the units used
+    view_data = filtered_data.set_index('Date').resample('W')['Units_Used'].sum().reset_index()
+    view_data['Period'] = view_data['Date'].dt.strftime('Week %U, %Y')
+    x_axis = 'Period'
+elif view_by == "Monthly":
+    # Group by month, summing the units used
+    view_data = filtered_data.set_index('Date').resample('M')['Units_Used'].sum().reset_index()
+    view_data['Period'] = view_data['Date'].dt.strftime('%B %Y')
+    x_axis = 'Period'
+else:  # "Daily"
+    view_data = filtered_data
+    x_axis = 'Date'
+
+# Create the chart based on user's chart type selection
+if chart_type == "Bar":
+    fig_custom = px.bar(view_data, x=x_axis, y='Units_Used', 
+                       title=f'{chart_type} Chart: {selected_component} ({time_frame} by {view_by})')
+elif chart_type == "Area":
+    fig_custom = px.area(view_data, x=x_axis, y='Units_Used', 
+                        title=f'{chart_type} Chart: {selected_component} ({time_frame} by {view_by})')
+else:  # "Line" is default
+    fig_custom = px.line(view_data, x=x_axis, y='Units_Used', 
+                        title=f'{chart_type} Chart: {selected_component} ({time_frame} by {view_by})')
+
+# Display the customized chart
+st.plotly_chart(fig_custom, use_container_width=True)
+
+# -------------------- CONTINUE WITH EXISTING CODE --------------------
 # Row 3: Data Preview
 st.subheader("📋 Raw Data Preview")
 st.dataframe(component_data.tail(10).style.background_gradient(), use_container_width=True)
