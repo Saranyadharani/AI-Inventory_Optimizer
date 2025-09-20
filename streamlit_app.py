@@ -175,54 +175,54 @@ with col_right:
     """)
     
     if st.button("🚀 Generate AI Insights", type="primary", use_container_width=True):
-    with st.spinner('🤖 AI is crunching numbers...'):
-        try:
-            # Get the AI forecast
-            forecast = get_forecast(component_data)
-            
-            # Calculate the key metrics
-            historical_demand = component_data['Units_Used'].values
-            avg_daily_demand = component_data['Units_Used'].mean()
-            
-            safety_stock = calculate_safety_stock(historical_demand, lead_time, service_level)
-            optimal_inventory = calculate_optimal_inventory(forecast, lead_time, safety_stock)
-            order_quantity = calculate_order_quantity(optimal_inventory)
-            
-            # Calculate cost savings - THE BUSINESS IMPACT!
-            old_method_inventory = estimate_old_method_inventory(avg_daily_demand)
-            annual_savings, inventory_reduction = calculate_cost_savings(
-                optimal_inventory, old_method_inventory, component_cost=5.0  # ₹5 per unit example
-            )
-            
-            # Display the results
-            st.success("💰 AI Analysis Complete! Here's Your Savings:")
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("**Optimal Inventory**", f"{optimal_inventory:,} units", 
-                         f"vs old: {old_method_inventory:,}")
-            with col2:
-                st.metric("**Safety Stock**", f"{safety_stock:,} units")
-            with col3:
-                st.metric("**Order Quantity**", f"{order_quantity:,} units")
-            
-            # Show the financial impact prominently
-            st.markdown("---")
-            st.subheader("💵 Financial Impact")
-            
-            savings_col1, savings_col2, savings_col3 = st.columns(3)
-            with savings_col1:
-                st.metric("**Inventory Reduction**", f"{inventory_reduction:,} units", 
-                         "Less capital tied up")
-            with savings_col2:
-                st.metric("**Annual Savings**", f"₹{annual_savings:,}", 
-                         "From reduced holding costs")
-            with savings_col3:
-                st.metric("**ROI**", "Immediate", "First year payoff")
+        with st.spinner('🤖 AI is crunching numbers...'):
+            try:
+                # Get the AI forecast
+                forecast = get_forecast(component_data)
                 
-        except Exception as e:
-            st.error(f"❌ Error in AI analysis: {str(e)}")
-            st.info("This might be because the Prophet model is still training. Try again in a moment.")
+                # Calculate the key metrics
+                historical_demand = component_data['Units_Used'].values
+                avg_daily_demand = component_data['Units_Used'].mean()
+                safety_stock = calculate_safety_stock(historical_demand, lead_time, service_level)
+                optimal_inventory = calculate_optimal_inventory(forecast, lead_time, safety_stock)
+                order_quantity = calculate_order_quantity(optimal_inventory)
+                
+                # Calculate cost savings - THE BUSINESS IMPACT!
+                old_method_inventory = estimate_old_method_inventory(avg_daily_demand)
+                annual_savings, inventory_reduction = calculate_cost_savings(
+                    optimal_inventory, old_method_inventory, component_cost=5.0  # ₹5 per unit example
+                )
+                
+                # Display the results
+                st.success("💰 AI Analysis Complete! Here's Your Savings:")
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("**Optimal Inventory**", f"{optimal_inventory:,} units", 
+                             f"vs old: {old_method_inventory:,}")
+                with col2:
+                    st.metric("**Safety Stock**", f"{safety_stock:,} units")
+                with col3:
+                    st.metric("**Order Quantity**", f"{order_quantity:,} units")
+                
+                # Show the financial impact prominently
+                st.markdown("---")
+                st.subheader("💵 Financial Impact")
+                
+                savings_col1, savings_col2, savings_col3 = st.columns(3)
+                with savings_col1:
+                    st.metric("**Inventory Reduction**", f"{inventory_reduction:,} units", 
+                             "Less capital tied up")
+                with savings_col2:
+                    st.metric("**Annual Savings**", f"₹{annual_savings:,}", 
+                             "From reduced holding costs")
+                with savings_col3:
+                    st.metric("**ROI**", "Immediate", "First year payoff")
+                    
+            except Exception as e:
+                st.error(f"❌ Error in AI analysis: {str(e)}")
+                st.info("This might be because the Prophet model is still training. Try again in a moment.")
+
 # -------------------- NEW INTERACTIVE CHART EXPLORER SECTION --------------------
 st.markdown("---")
 st.subheader("🔍 Chart Explorer: Customize Your View")
