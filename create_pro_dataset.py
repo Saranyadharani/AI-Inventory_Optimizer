@@ -1,57 +1,138 @@
-# Add this section to your existing streamlit_app.py
+# create_pro_dataset.py
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+import os
 
-# After your main analysis, add these visualizations:
-
-# Show component categories
-st.subheader("📊 Component Categories Analysis")
-category_summary = current_df.groupby('Category').agg({
-    'Component_ID': 'count',
-    'Current_Stock': 'sum',
-    'Unit_Cost': 'mean'
-}).rename(columns={'Component_ID': 'Count', 'Unit_Cost': 'Avg_Cost'})
-
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.metric("Total Components", len(current_df))
-with col2:
-    st.metric("Total Inventory Value", f"₹{current_df['Current_Stock'].dot(current_df['Unit_Cost']):,.0f}")
-with col3:
-    st.metric("Categories", len(category_summary))
-
-# Show inventory value by category
-fig1 = px.pie(current_df, values='Current_Stock', names='Category', 
-             title='Inventory Distribution by Category')
-st.plotly_chart(fig1, use_container_width=True)
-
-# Show cost analysis
-fig2 = px.bar(current_df, x='Component_ID', y='Unit_Cost', color='Category',
-             title='Unit Cost by Component (₹)')
-st.plotly_chart(fig2, use_container_width=True)
-
-# Show potential savings across all components
-if st.button("💎 Calculate Total Portfolio Savings", type="secondary"):
-    with st.spinner("Analyzing entire inventory portfolio..."):
-        total_annual_savings = 0
-        total_capital_released = 0
+def create_hackathon_winning_dataset():
+    print("🚀 Creating Professional Hackathon Dataset...")
+    print("This dataset will showcase REAL AI capabilities!")
+    
+    # Create data folder
+    os.makedirs('data', exist_ok=True)
+    
+    # 25 Real Electronic Components with different behaviors
+    components = {
+        # High-volume passive components (stable demand)
+        'RES-10K-0.25W': {'base': 2500, 'cost': 0.5, 'volatility': 0.3, 'category': 'Passive'},
+        'CAP-100uF-25V': {'base': 1800, 'cost': 0.8, 'volatility': 0.4, 'category': 'Passive'},
+        'CAP-1uF-50V': {'base': 2200, 'cost': 0.3, 'volatility': 0.2, 'category': 'Passive'},
+        'DIODE-1N4148': {'base': 1200, 'cost': 0.2, 'volatility': 0.3, 'category': 'Semiconductor'},
         
-        for comp_id in current_df['Component_ID']:
-            comp_data = historical_df[historical_df['Component_ID'] == comp_id]
-            current_stock = current_df[current_df['Component_ID'] == comp_id]['Current_Stock'].values[0]
-            unit_cost = current_df[current_df['Component_ID'] == comp_id]['Unit_Cost'].values[0]
-            
-            forecast = get_forecast(comp_data, periods=lead_time + 30)
-            demand_data = comp_data['Units_Used'].values
-            safety_stock = calculate_safety_stock(demand_data, lead_time, service_level)
-            optimal_inv = calculate_optimal_inventory(forecast, lead_time, safety_stock)
-            old_inv = get_old_method_inventory(comp_data['Units_Used'].mean())
-            annual_savings, reduction = calculate_savings(optimal_inv, old_inv, unit_cost)
-            
-            total_annual_savings += annual_savings
-            total_capital_released += reduction * unit_cost
+        # Medium-volume ICs (growing demand)
+        'IC-ATMEGA328P': {'base': 450, 'cost': 85.0, 'volatility': 0.6, 'category': 'IC'},
+        'IC-ESP32-WROOM': {'base': 320, 'cost': 120.0, 'volatility': 0.8, 'category': 'Module'},
+        'IC-STM32F103': {'base': 280, 'cost': 65.0, 'volatility': 0.5, 'category': 'IC'},
+        'IC-LM7805': {'base': 380, 'cost': 12.0, 'volatility': 0.4, 'category': 'Power'},
         
-        st.success(f"🎯 **Portfolio-Wide Impact**")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Total Annual Savings", f"₹{total_annual_savings:,.0f}")
-        with col2:
-            st.metric("Capital Released", f"₹{total_capital_released:,.0f}")
+        # Connectors and electromechanical
+        'CONN-USB-B': {'base': 420, 'cost': 8.0, 'volatility': 0.7, 'category': 'Connector'},
+        'CONN-HDMI': {'base': 180, 'cost': 15.0, 'volatility': 0.6, 'category': 'Connector'},
+        'CONN-JACK-3.5MM': {'base': 250, 'cost': 6.0, 'volatility': 0.5, 'category': 'Connector'},
+        
+        # Sensors and modules (volatile demand)
+        'SENSOR-DHT22': {'base': 150, 'cost': 45.0, 'volatility': 0.9, 'category': 'Sensor'},
+        'SENSOR-HC-SR04': {'base': 120, 'cost': 35.0, 'volatility': 0.8, 'category': 'Sensor'},
+        'MODULE-RELAY': {'base': 80, 'cost': 25.0, 'volatility': 0.7, 'category': 'Module'},
+        
+        # Power components
+        'MOSFET-IRF540': {'base': 180, 'cost': 18.0, 'volatility': 0.5, 'category': 'Power'},
+        'TRANSISTOR-2N2222': {'base': 300, 'cost': 2.0, 'volatility': 0.4, 'category': 'Semiconductor'},
+        
+        # Specialized components
+        'CRYSTAL-16MHZ': {'base': 200, 'cost': 5.0, 'volatility': 0.3, 'category': 'Oscillator'},
+        'LED-RGB-5MM': {'base': 350, 'cost': 1.5, 'volatility': 0.6, 'category': 'Opto'},
+        'BUZZER-5V': {'base': 90, 'cost': 8.0, 'volatility': 0.5, 'category': 'Audio'},
+        
+        # New for 2024 (high growth)
+        'IC-RP2040': {'base': 180, 'cost': 95.0, 'volatility': 1.2, 'category': 'IC'},
+        'SENSOR-BME280': {'base': 95, 'cost': 65.0, 'volatility': 0.9, 'category': 'Sensor'},
+        'MODULE-LORA': {'base': 60, 'cost': 150.0, 'volatility': 1.1, 'category': 'Module'},
+        'IC-WIFI-ESP8266': {'base': 220, 'cost': 75.0, 'volatility': 0.8, 'category': 'Module'},
+        'CONN-USBC': {'base': 280, 'cost': 12.0, 'volatility': 0.7, 'category': 'Connector'}
+    }
+    
+    # Generate 3 years of daily data (2022-2024)
+    dates = pd.date_range('2022-01-01', '2024-12-31', freq='D')
+    all_historical = []
+    
+    print("📈 Generating realistic demand patterns for 25 components...")
+    
+    for comp_id, config in components.items():
+        base = config['base']
+        volatility = config['volatility']
+        
+        # Complex trend with growth
+        growth_rate = 1.0 + (volatility * 0.3)  # More volatile = higher growth
+        trend = np.linspace(base, base * growth_rate, len(dates))
+        
+        # Strong weekly seasonality (30-50% weekend drop)
+        day_of_week = np.array([d.weekday() for d in dates])
+        weekly_season = np.where(day_of_week >= 5, -0.4 * base, 0)
+        
+        # Strong yearly seasonality (Q4 peak + summer slump)
+        month = np.array([d.month for d in dates])
+        yearly_season = np.zeros(len(dates))
+        yearly_season = np.where(month >= 10, 0.6 * base, yearly_season)  # Q4 peak
+        yearly_season = np.where((month >= 6) & (month <= 8), -0.3 * base, yearly_season)  # Summer slump
+        
+        # Random noise and spikes
+        noise = np.random.normal(0, base * 0.2 * volatility, len(dates))
+        
+        # Occasional demand spikes (5% chance daily)
+        spike_mask = np.random.random(len(dates)) < 0.05
+        spikes = np.where(spike_mask, base * 2.5 * np.random.random(len(dates)), 0)
+        
+        # Combine everything
+        demand = trend + weekly_season + yearly_season + noise + spikes
+        demand = np.maximum(demand, base * 0.2).astype(int)  # No negative values
+        
+        comp_data = pd.DataFrame({
+            'Date': dates,
+            'Component_ID': comp_id,
+            'Units_Used': demand,
+            'Category': config['category']
+        })
+        
+        all_historical.append(comp_data)
+    
+    # Combine all data
+    historical_df = pd.concat(all_historical, ignore_index=True)
+    
+    # Create current stock levels (realistic based on demand patterns)
+    current_stocks = []
+    for comp_id, config in components.items():
+        comp_data = historical_df[historical_df['Component_ID'] == comp_id]
+        avg_daily = comp_data['Units_Used'].mean()
+        
+        # Realistic stock levels: 45-60 days of average demand
+        days_coverage = 45 + (np.random.random() * 15)
+        current_stock = int(avg_daily * days_coverage)
+        
+        current_stocks.append({
+            'Component_ID': comp_id,
+            'Current_Stock': current_stock,
+            'Unit_Cost': config['cost'],
+            'Category': config['category'],
+            'Avg_Daily_Demand': round(avg_daily, 2),
+            'Demand_Volatility': config['volatility']
+        })
+    
+    current_df = pd.DataFrame(current_stocks)
+    
+    # Save files
+    historical_df.to_csv('data/historical_data.csv', index=False)
+    current_df.to_csv('data/current_stocks.csv', index=False)
+    
+    print("✅ Generated professional dataset!")
+    print(f"📊 Historical data: {len(historical_df):,} records")
+    print(f"📦 {len(components)} components with realistic demand patterns")
+    print(f"💰 Total inventory value: ₹{current_df['Current_Stock'].dot(current_df['Unit_Cost']):,.0f}")
+    print("\n🎯 This dataset will showcase:")
+    print("   - Realistic seasonality & trends")
+    print("   - Different component behaviors")
+    print("   - Significant cost savings potential")
+    print("   - Professional-grade AI analysis")
+
+if __name__ == "__main__":
+    create_hackathon_winning_dataset()
