@@ -450,9 +450,7 @@ with tab4:
     else:
         st.info("👆 Generate AI insights first to export reports")
 
-# Footer
-st.markdown("---")
-st.caption("🏆 AI-Powered Inventory Optimization | Built for Hackathon | Powered by Facebook Prophet & Streamlit")
+
 
 # Run the app
 if __name__ == "__main__":
