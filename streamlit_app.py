@@ -17,122 +17,191 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for professional look
-# -------------------- CUSTOM CSS ---------------------
+# FIXED CSS - Professional, high-contrast design
 st.markdown("""
 <style>
-    /* DARKER BACKGROUND FOR BETTER CONTRAST */
+    /* DARK PROFESSIONAL BACKGROUND */
     .stApp {
-        background: linear-gradient(135deg, #e1e8f0 0%, #a7b8d4 100%) !important;
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
     }
     
-    /* MAKE ALL TEXT DARK AND BOLD */
+    /* MAIN CONTENT AREA - DARK CARD STYLE */
+    .main .block-container {
+        background: #1e1e1e !important;
+        border-radius: 15px;
+        padding: 2rem;
+        margin: 1rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        border: 1px solid #333;
+    }
+    
+    /* WHITE TEXT THROUGHOUT */
     .stApp * {
-        font-weight: 700 !important;
-        color: #1a1a1a !important;
-        text-shadow: 0.5px 0.5px 1px rgba(255,255,255,0.7) !important;
+        color: #ffffff !important;
     }
     
-    /* SIDEBAR - DARK BACKGROUND WITH WHITE TEXT */
+    /* HEADERS - BOLD AND PROMINENT */
+    h1, h2, h3 {
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    /* MAIN HEADER - CENTERED WITH GRADIENT */
+    .main-header {
+        font-size: 3rem !important;
+        font-weight: 900 !important;
+        background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        text-align: center;
+        padding: 1rem 0;
+        margin-bottom: 2rem !important;
+    }
+    
+    /* METRICS - MODERN CARD DESIGN */
+    [data-testid="stMetricValue"] {
+        font-size: 2.8rem !important;
+        font-weight: 900 !important;
+        color: #00ff88 !important;
+        text-shadow: 0 2px 4px rgba(0,255,136,0.3) !important;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        color: #cccccc !important;
+        opacity: 0.9;
+    }
+    
+    /* METRIC CARDS - GLASS MORPHISM */
+    [data-testid="stMetric"] {
+        background: rgba(255,255,255,0.05) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 0.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    /* SIDEBAR - DARK THEME */
     .stSidebar {
-        background: linear-gradient(180deg, #1a1a1a 0%, #2d3748 100%) !important;
+        background: linear-gradient(180deg, #0a0a0a 0%, #151515 100%) !important;
+        border-right: 1px solid #333;
     }
     
     .stSidebar * {
         color: #ffffff !important;
-        font-weight: 600 !important;
     }
     
-    /* HEADERS - EXTRA BOLD */
-    h1, h2, h3, h4, h5, h6 {
-        font-weight: 800 !important;
-        color: #000000 !important;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.1) !important;
-    }
-    
-    /* MAIN HEADER - PROMINENT */
-    .main-header {
-        font-size: 3.5rem !important;
-        font-weight: 900 !important;
-        background: linear-gradient(135deg, #000000 0%, #434343 100%) !important;
+    .sidebar-header {
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+        background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%) !important;
         -webkit-background-clip: text !important;
         -webkit-text-fill-color: transparent !important;
-        padding: 0.5rem 0;
         text-align: center;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
-    }
-    
-    /* METRICS - STAND OUT */
-    [data-testid="stMetricValue"] {
-        font-size: 2.5rem !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
-    }
-    
-    [data-testid="stMetricLabel"] {
-        font-size: 1.3rem !important;
-        font-weight: 700 !important;
-        color: #1a1a1a !important;
-    }
-    
-    /* SIDEBAR HEADER */
-    .sidebar-header {
-        font-size: 1.8rem !important;
-        font-weight: 800 !important;
         padding: 1rem;
-        text-align: center;
-        background: rgba(255,255,255,0.1) !important;
-        border-radius: 10px;
-        margin-bottom: 2rem;
-        color: #ffffff !important;
+        margin-bottom: 1rem;
     }
     
-    /* INPUTS - DARK TEXT ON WHITE BACKGROUND */
+    /* INPUTS - MODERN DARK STYLE */
     .stSelectbox, .stSlider, .stTextInput, .stNumberInput {
-        background-color: white !important;
-        color: #000000 !important;
-        font-weight: 600 !important;
-        border-radius: 5px;
-        padding: 5px;
+        background: rgba(255,255,255,0.08) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 8px !important;
+        color: white !important;
+        padding: 8px 12px !important;
     }
     
-    /* BUTTONS */
-    .stButton > button {
-        background: linear-gradient(135deg, #000000 0%, #434343 100%) !important;
+    .stSelectbox div[data-baseweb="select"] > div {
+        background: rgba(255,255,255,0.08) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
         color: white !important;
-        font-weight: 800 !important;
-        font-size: 1.3rem !important;
-        border: none;
-        border-radius: 8px;
-        padding: 0.8rem 1.5rem;
-        width: 100%;
-        transition: all 0.3s ease;
+    }
+    
+    /* BUTTONS - GRADIENT MODERN */
+    .stButton > button {
+        background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%) !important;
+        color: #000000 !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 0.8rem 1.5rem !important;
+        margin: 0.5rem 0 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(0,255,136,0.3) !important;
     }
     
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 25px rgba(0,255,136,0.5) !important;
     }
     
-    /* INFO BOXES - DARK TEXT */
-    .stInfo, .stSuccess, .stWarning {
-        background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%) !important;
+    /* TABS - MODERN STYLING */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2px !important;
+        background: rgba(255,255,255,0.05) !important;
+        border-radius: 10px !important;
+        padding: 5px !important;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background: transparent !important;
+        border-radius: 8px !important;
+        padding: 0.8rem 1.5rem !important;
+        margin: 2px !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%) !important;
         color: #000000 !important;
-        font-weight: 600 !important;
-        border-left: 4px solid #000000 !important;
+        font-weight: 700 !important;
     }
     
-    /* METRIC CARDS */
-    [data-testid="stMetric"] {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
-        padding: 1.5rem;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
-        border-left: 4px solid #000000 !important;
+    /* INFO BOXES - DARK THEME */
+    .stInfo, .stSuccess, .stWarning, .stError {
+        background: rgba(255,255,255,0.05) !important;
+        border-left: 4px solid #00ff88 !important;
+        border-radius: 8px !important;
+        padding: 1rem !important;
+        margin: 1rem 0 !important;
+    }
+    
+    /* DATA FRAMES - DARK STYLE */
+    .stDataFrame {
+        background: rgba(255,255,255,0.05) !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    
+    /* SEPARATORS */
+    hr {
+        border-color: rgba(255,255,255,0.2) !important;
+        margin: 2rem 0 !important;
+    }
+    
+    /* SCROLLBAR STYLING */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: rgba(255,255,255,0.05);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+        border-radius: 4px;
     }
 </style>
 """, unsafe_allow_html=True)
-# Load data
+
+# Load data (rest of your code remains exactly the same)
 @st.cache_data
 def load_data():
     try:
@@ -157,8 +226,7 @@ if historical_df is None:
     st.stop()
 
 # Sidebar - Control Center
-st.sidebar.markdown('<div class="metric-card">', unsafe_allow_html=True)
-st.sidebar.title("🔧 Control Center")
+st.sidebar.markdown('<div class="sidebar-header">🔧 Control Center</div>', unsafe_allow_html=True)
 st.sidebar.markdown("---")
 
 component = st.sidebar.selectbox(
@@ -192,7 +260,6 @@ st.sidebar.markdown(f"""
 - **Current Stock**: {current_stock:,} units
 - **Unit Cost**: ₹{unit_cost:,.2f}
 """)
-st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
 # Main Dashboard
 st.markdown('<h1 class="main-header">🏭 AI Inventory Command Center</h1>', unsafe_allow_html=True)
@@ -201,28 +268,21 @@ st.markdown("---")
 # Top Metrics Row
 col1, col2, col3, col4 = st.columns(4)
 with col1:
-    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
     st.metric("**Current Stock**", f"{current_stock:,}", "units")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 with col2:
-    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
     avg_daily = comp_data['Units_Used'].mean()
     st.metric("**Avg Daily Demand**", f"{avg_daily:,.0f}", "units/day")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 with col3:
-    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
     st.metric("**Unit Cost**", f"₹{unit_cost:,.2f}", "per unit")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 with col4:
-    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
     st.metric("**Service Level**", f"{service_level*100:.0f}%", "target")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
+# Rest of your code remains exactly the same...
 # Main Content
 tab1, tab2, tab3, tab4 = st.tabs(["📈 Demand Analysis", "💰 Financial Dashboard", "📊 Portfolio Overview", "📋 Export Reports"])
 
@@ -253,22 +313,21 @@ with tab1:
         if chart_type == "Line":
             fig = px.line(chart_data, x='Date', y='Units_Used', 
                          title=f'📈 {component} Demand Pattern ({time_frame})',
-                         template='plotly_white')
+                         template='plotly_dark')
         elif chart_type == "Area":
             fig = px.area(chart_data, x='Date', y='Units_Used',
                          title=f'📊 {component} Demand Pattern ({time_frame})',
-                         template='plotly_white')
+                         template='plotly_dark')
         else:
             fig = px.bar(chart_data, x='Date', y='Units_Used',
                         title=f'📋 {component} Demand Pattern ({time_frame})',
-                        template='plotly_white')
+                        template='plotly_dark')
         
         fig.update_layout(height=500, showlegend=False)
         st.plotly_chart(fig, use_container_width=True)
     
     with col_right:
         st.subheader("⚡ AI Recommendations")
-        st.markdown('<div class="success-box">', unsafe_allow_html=True)
         st.info(f"""
         **Ready to Analyze: {component}**
         
@@ -278,7 +337,6 @@ with tab1:
         - **Service Level**: {service_level*100:.0f}%
         - **Unit Cost**: ₹{unit_cost:,.2f}
         """)
-        st.markdown('</div>', unsafe_allow_html=True)
         
         if st.button("🚀 Generate AI Insights", type="primary", use_container_width=True):
             with st.spinner('🤖 AI is analyzing demand patterns...'):
@@ -340,25 +398,17 @@ with tab2:
         # Financial Metrics
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
             st.metric("**Inventory Reduction**", f"{results['inventory_reduction']:,}", "units")
-            st.markdown('</div>', unsafe_allow_html=True)
         
         with col2:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
             st.metric("**Capital Released**", f"₹{results['capital_released']:,}", "immediate benefit")
-            st.markdown('</div>', unsafe_allow_html=True)
         
         with col3:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
             st.metric("**Annual Savings**", f"₹{results['annual_savings']:,}", "20% holding cost")
-            st.markdown('</div>', unsafe_allow_html=True)
         
         with col4:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
             roi = (results['annual_savings'] / results['capital_released'] * 100) if results['capital_released'] > 0 else 0
             st.metric("**ROI**", f"{roi:.1f}%", "first year")
-            st.markdown('</div>', unsafe_allow_html=True)
         
         # Financial Visualizations
         col1, col2 = st.columns(2)
@@ -372,7 +422,7 @@ with tab2:
             })
             fig1 = px.bar(savings_data, x='Category', y='Amount', color='Type',
                          title='💵 Financial Impact Breakdown',
-                         template='plotly_white')
+                         template='plotly_dark')
             st.plotly_chart(fig1, use_container_width=True)
         
         with col2:
@@ -384,23 +434,17 @@ with tab2:
             })
             fig2 = px.bar(inventory_data, x='Method', y='Inventory', color='Type',
                          title='📦 Inventory Level Comparison',
-                         template='plotly_white')
+                         template='plotly_dark')
             st.plotly_chart(fig2, use_container_width=True)
         
         # Priority Status
         st.markdown("---")
         if current_stock < results['safety_stock']:
-            st.markdown('<div class="danger-box">', unsafe_allow_html=True)
             st.error("🚨 CRITICAL: Risk of imminent stockout! Order immediately.")
-            st.markdown('</div>', unsafe_allow_html=True)
         elif current_stock < results['optimal_inventory']:
-            st.markdown('<div class="warning-box">', unsafe_allow_html=True)
             st.warning("⚠️  WARNING: Stock levels below optimal. Monitor closely.")
-            st.markdown('</div>', unsafe_allow_html=True)
         else:
-            st.markdown('<div class="success-box">', unsafe_allow_html=True)
             st.success("✅ HEALTHY: Stock levels are optimal or above.")
-            st.markdown('</div>', unsafe_allow_html=True)
             
     else:
         st.info("👆 Generate AI insights first to see financial dashboard")
@@ -432,14 +476,14 @@ with tab3:
     
     fig1 = px.pie(current_df, values='Current_Stock', names='Category', 
                  title='Inventory Distribution by Category',
-                 template='plotly_white')
+                 template='plotly_dark')
     st.plotly_chart(fig1, use_container_width=True)
     
     # Cost analysis
     st.subheader("💵 Unit Cost Analysis")
     fig2 = px.bar(current_df, x='Component_ID', y='Unit_Cost', color='Category',
                  title='Unit Cost by Component (₹)',
-                 template='plotly_white')
+                 template='plotly_dark')
     fig2.update_xaxes(tickangle=45)
     st.plotly_chart(fig2, use_container_width=True)
 
@@ -497,8 +541,6 @@ with tab4:
             st.markdown(create_download_link(comprehensive_report, f"comprehensive_report_{component}.csv", "csv"), unsafe_allow_html=True)
     else:
         st.info("👆 Generate AI insights first to export reports")
-
-
 
 # Run the app
 if __name__ == "__main__":
