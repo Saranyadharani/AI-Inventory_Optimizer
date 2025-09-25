@@ -303,3 +303,4 @@ st.dataframe(component_data.tail(10).style.background_gradient(), use_container_
 
 # -------------------- FOOTER --------------------
 st.markdown("---")
+st.caption("**AI-Powered Inventory Optimization** | Built for CREONIX '25 Hackathon | 🚀 Powered by Streamlit")
