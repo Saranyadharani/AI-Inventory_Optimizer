@@ -19,6 +19,8 @@ st.set_page_config(
 
 # Custom CSS for professional look
 # -------------------- CUSTOM CSS --------------------
+# -------------------- CUSTOM CSS --------------------
+# -------------------- CUSTOM CSS --------------------
 st.markdown("""
 <style>
     /* Main app background */
