@@ -18,72 +18,110 @@ st.set_page_config(
 )
 
 # Custom CSS for professional look
+# -------------------- CUSTOM CSS --------------------
 st.markdown("""
 <style>
+    /* Main app background */
+    .stApp {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #2c3e50 !important;
+        font-size: 1.1rem !important;
+    }
+    
+    /* Main header styling - ENHANCED */
     .main-header {
-        font-size: 2.8rem;
-        font-weight: 700;
+        font-size: 3.5rem !important;
+        font-weight: 800 !important;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        padding: 0.5rem 0;
         text-align: center;
-        padding: 1rem 0;
-        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
     
-    .metric-card {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    /* Enhanced section headers */
+    h1, h2, h3 {
+        color: #2c3e50 !important;
+        font-weight: 700 !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    /* Make metric values stand out */
+    [data-testid="stMetricValue"] {
+        font-size: 2rem !important;
+        font-weight: 800 !important;
+        color: #667eea !important;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        font-size: 1.2rem !important;
+        font-weight: 600 !important;
+        color: #2c3e50 !important;
+    }
+    
+    /* Sidebar styling */
+    .stSidebar {
+        background: linear-gradient(180deg, #2c3e50 0%, #3498db 100%);
+        font-size: 1.1rem !important;
+    }
+    
+    .sidebar-header {
+        color: white !important;
+        font-size: 1.5rem !important;
+        font-weight: 600 !important;
+        padding: 1rem;
+        text-align: center;
+        background: rgba(0,0,0,0.2);
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    /* Metric card styling */
+    [data-testid="stMetric"] {
+        background: white;
         padding: 1.5rem;
         border-radius: 15px;
-        border-left: 5px solid #667eea;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        margin-bottom: 1rem;
-        transition: transform 0.3s ease;
+        border-left: 4px solid #667eea;
+        transition: transform 0.2s ease;
     }
     
-    .metric-card:hover {
+    [data-testid="stMetric"]:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     }
     
-    .stButton>button {
+    /* Button styling - ENHANCED */
+    .stButton > button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
         border: none;
         border-radius: 8px;
-        padding: 12px 24px;
-        font-weight: 600;
+        padding: 0.8rem 1.5rem;
+        width: 100%;
         transition: all 0.3s ease;
+        letter-spacing: 0.5px;
     }
     
-    .stButton>button:hover {
+    .stButton > button:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
     
-    .success-box {
+    /* Info box styling */
+    .stInfo {
         background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
         border-radius: 12px;
         padding: 1.5rem;
-        border-left: 5px solid #00bcd4;
-    }
-    
-    .warning-box {
-        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-        border-radius: 12px;
-        padding: 1.5rem;
-        border-left: 5px solid #ff9800;
-    }
-    
-    .danger-box {
-        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-        border-radius: 12px;
-        padding: 1.5rem;
-        border-left: 5px solid #f44336;
+        border-left: 4px solid #00bcd4;
+        font-size: 1.1rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
-
 # Load data
 @st.cache_data
 def load_data():
