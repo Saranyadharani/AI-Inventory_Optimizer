@@ -1,306 +1,459 @@
+# streamlit_app.py
 import streamlit as st
-from model import get_forecast
-from calculations import calculate_safety_stock, calculate_optimal_inventory, calculate_order_quantity, estimate_old_method_inventory, calculate_cost_savings
 import pandas as pd
 import plotly.express as px
-import numpy as np
-import os
+import plotly.graph_objects as go
+from datetime import datetime
+import base64
+import io
+from calculations import *
+from model import get_forecast
 
-# -------------------- PAGE CONFIG --------------------
+# Page config
 st.set_page_config(
-    page_title="Electronics Inventory AI Optimizer",
-    page_icon="📈",
+    page_title="AI Inventory Command Center",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# -------------------- CUSTOM CSS --------------------
+# Custom CSS for professional look
 st.markdown("""
 <style>
-    /* Main app background */
-    .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    }
-    
-    /* Main header styling */
     .main-header {
-        font-size: 3rem;
+        font-size: 2.8rem;
         font-weight: 700;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        padding: 0.5rem 0;
         text-align: center;
+        padding: 1rem 0;
+        margin-bottom: 1rem;
     }
     
-    /* Sidebar styling */
-    .stSidebar {
-        background: linear-gradient(180deg, #2c3e50 0%, #3498db 100%);
-    }
-    
-    .sidebar-header {
-        color: white !important;
-        font-size: 1.5rem;
-        font-weight: 600;
-        padding: 1rem;
-        text-align: center;
-        background: rgba(0,0,0,0.2);
-        border-radius: 10px;
-        margin-bottom: 2rem;
-    }
-    
-    /* Metric card styling */
-    [data-testid="stMetric"] {
-        background: white;
+    .metric-card {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         padding: 1.5rem;
         border-radius: 15px;
+        border-left: 5px solid #667eea;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border-left: 4px solid #667eea;
-        transition: transform 0.2s ease;
+        margin-bottom: 1rem;
+        transition: transform 0.3s ease;
     }
     
-    [data-testid="stMetric"]:hover {
+    .metric-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     }
     
-    /* Button styling */
-    .stButton > button {
+    .stButton>button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        font-weight: 600;
         border: none;
         border-radius: 8px;
-        padding: 0.8rem 1.5rem;
-        width: 100%;
+        padding: 12px 24px;
+        font-weight: 600;
         transition: all 0.3s ease;
     }
     
-    .stButton > button:hover {
+    .stButton>button:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
     
-    /* Info box styling */
-    .stInfo {
+    .success-box {
         background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
         border-radius: 12px;
         padding: 1.5rem;
-        border-left: 4px solid #00bcd4;
+        border-left: 5px solid #00bcd4;
+    }
+    
+    .warning-box {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border-left: 5px solid #ff9800;
+    }
+    
+    .danger-box {
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border-left: 5px solid #f44336;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------- DATA LOADING --------------------
+# Load data
 @st.cache_data
 def load_data():
-    file_path = os.path.join('data', 'electronics_inventory_dataset_2022_2024.csv')
-    df = pd.read_csv(file_path)
-    df['Date'] = pd.to_datetime(df['Date'], format='%d-%m-%Y')
-    return df
+    try:
+        historical = pd.read_csv('data/historical_data.csv')
+        current = pd.read_csv('data/current_stocks.csv')
+        historical['Date'] = pd.to_datetime(historical['Date'])
+        return historical, current
+    except FileNotFoundError:
+        st.error("❌ Data files not found! Please run: python create_pro_dataset.py")
+        return None, None
 
-df = load_data()
+def create_download_link(df, filename, file_type):
+    """Generate download link for CSV or PDF"""
+    if file_type == 'csv':
+        csv = df.to_csv(index=False)
+        b64 = base64.b64encode(csv.encode()).decode()
+        href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">📥 Download {filename}</a>'
+    return href
 
-# -------------------- SIDEBAR FILTERS --------------------
-st.sidebar.markdown('<p class="sidebar-header">🔧 Control Center</p>', unsafe_allow_html=True)
+historical_df, current_df = load_data()
+if historical_df is None:
+    st.stop()
 
-component_list = df['Component_ID'].unique()
-selected_component = st.sidebar.selectbox(
+# Sidebar - Control Center
+st.sidebar.markdown('<div class="metric-card">', unsafe_allow_html=True)
+st.sidebar.title("🔧 Control Center")
+st.sidebar.markdown("---")
+
+component = st.sidebar.selectbox(
     "**Select Electronic Component**",
-    component_list,
+    sorted(historical_df['Component_ID'].unique()),
     help="Choose which component to analyze"
 )
 
 lead_time = st.sidebar.slider(
     "**Supplier Lead Time (Days)**",
-    min_value=7,
-    max_value=90,
-    value=30,
+    min_value=7, max_value=90, value=30,
     help="Total time from order to delivery"
 )
 
 service_level = st.sidebar.slider(
     "**Target Service Level**",
-    min_value=0.85,
-    max_value=0.99,
-    value=0.95,
+    min_value=0.85, max_value=0.99, value=0.95,
     help="Probability of avoiding stockouts (0.95 = 95%)"
 )
 
-# -------------------- MAIN DASHBOARD --------------------
+# Get component data
+comp_data = historical_df[historical_df['Component_ID'] == component]
+current_stock = current_df[current_df['Component_ID'] == component]['Current_Stock'].values[0]
+unit_cost = current_df[current_df['Component_ID'] == component]['Unit_Cost'].values[0]
+category = current_df[current_df['Component_ID'] == component]['Category'].values[0]
+
+st.sidebar.markdown("---")
+st.sidebar.markdown(f"""
+**Component Details:**
+- **Category**: {category}
+- **Current Stock**: {current_stock:,} units
+- **Unit Cost**: ₹{unit_cost:,.2f}
+""")
+st.sidebar.markdown('</div>', unsafe_allow_html=True)
+
+# Main Dashboard
 st.markdown('<h1 class="main-header">🏭 AI Inventory Command Center</h1>', unsafe_allow_html=True)
 st.markdown("---")
 
-# Row 1: Key Metrics
-st.subheader("📊 Performance Dashboard")
+# Top Metrics Row
 col1, col2, col3, col4 = st.columns(4)
-
-component_data = df[df['Component_ID'] == selected_component]
-avg_daily_use = component_data['Units_Used'].mean()
-total_units_used = component_data['Units_Used'].sum()
-
 with col1:
-    st.metric(label="**Avg Daily Usage**", value=f"{avg_daily_use:,.0f}", delta="units/day")
+    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+    st.metric("**Current Stock**", f"{current_stock:,}", "units")
+    st.markdown('</div>', unsafe_allow_html=True)
+
 with col2:
-    st.metric(label="**Total Units (3Y)**", value=f"{total_units_used:,.0f}", delta="units")
+    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+    avg_daily = comp_data['Units_Used'].mean()
+    st.metric("**Avg Daily Demand**", f"{avg_daily:,.0f}", "units/day")
+    st.markdown('</div>', unsafe_allow_html=True)
+
 with col3:
-    st.metric(label="**Lead Time**", value=f"{lead_time}", delta="days")
+    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+    st.metric("**Unit Cost**", f"₹{unit_cost:,.2f}", "per unit")
+    st.markdown('</div>', unsafe_allow_html=True)
+
 with col4:
-    st.metric(label="**Service Level**", value=f"{service_level*100:.0f}%", delta="target")
+    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+    st.metric("**Service Level**", f"{service_level*100:.0f}%", "target")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
-# Row 2: Charts and Recommendations
-col_left, col_right = st.columns([2, 1])
+# Main Content
+tab1, tab2, tab3, tab4 = st.tabs(["📈 Demand Analysis", "💰 Financial Dashboard", "📊 Portfolio Overview", "📋 Export Reports"])
 
-with col_left:
-    st.subheader("📈 Demand Analysis")
-    fig = px.line(component_data, x='Date', y='Units_Used', 
-                 title=f'Historical Demand: {selected_component}',
-                 template='plotly_white')
-    fig.update_layout(height=400)
-    st.plotly_chart(fig, use_container_width=True)
-
-with col_right:
-    st.subheader("⚡ AI Recommendations")
+with tab1:
+    col_left, col_right = st.columns([2, 1])
     
-    st.info("""
-    **Ready for Analysis**
+    with col_left:
+        st.subheader("📊 Demand Forecast Analysis")
+        
+        # Interactive chart with customization
+        chart_col1, chart_col2 = st.columns(2)
+        with chart_col1:
+            chart_type = st.selectbox("Chart Style", ["Line", "Area", "Bar"], key="chart_type")
+        with chart_col2:
+            time_frame = st.selectbox("Time Frame", ["Last 90 Days", "Last 180 Days", "Last Year", "All Time"], key="time_frame")
+        
+        # Filter data based on selection
+        if time_frame == "Last 90 Days":
+            chart_data = comp_data.tail(90)
+        elif time_frame == "Last 180 Days":
+            chart_data = comp_data.tail(180)
+        elif time_frame == "Last Year":
+            chart_data = comp_data[comp_data['Date'] >= comp_data['Date'].max() - pd.DateOffset(days=365)]
+        else:
+            chart_data = comp_data
+        
+        # Create chart based on selection
+        if chart_type == "Line":
+            fig = px.line(chart_data, x='Date', y='Units_Used', 
+                         title=f'📈 {component} Demand Pattern ({time_frame})',
+                         template='plotly_white')
+        elif chart_type == "Area":
+            fig = px.area(chart_data, x='Date', y='Units_Used',
+                         title=f'📊 {component} Demand Pattern ({time_frame})',
+                         template='plotly_white')
+        else:
+            fig = px.bar(chart_data, x='Date', y='Units_Used',
+                        title=f'📋 {component} Demand Pattern ({time_frame})',
+                        template='plotly_white')
+        
+        fig.update_layout(height=500, showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
     
-    Click below to get:
-    - Optimal Stock Levels
-    - Safety Stock Requirements
-    - Cost-Saving Recommendations
-    - Order Quantities
-    """)
-    
-    if st.button("🚀 Generate AI Insights", type="primary", use_container_width=True):
-        with st.spinner('🤖 AI is crunching numbers...'):
-            try:
-                # Get the AI forecast
-                forecast = get_forecast(component_data)
-                
-                # Calculate the key metrics
-                historical_demand = component_data['Units_Used'].values
-                avg_daily_demand = component_data['Units_Used'].mean()
-                safety_stock = calculate_safety_stock(historical_demand, lead_time, service_level)
-                optimal_inventory = calculate_optimal_inventory(forecast, lead_time, safety_stock)
-                order_quantity = calculate_order_quantity(optimal_inventory)
-                
-                # Calculate cost savings - THE BUSINESS IMPACT!
-                old_method_inventory = estimate_old_method_inventory(avg_daily_demand)
-                annual_savings, inventory_reduction = calculate_cost_savings(
-                    optimal_inventory, old_method_inventory, component_cost=5.0  # ₹5 per unit example
-                )
-                
-                # Display the results
-                st.success("💰 AI Analysis Complete! Here's Your Savings:")
-                
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("**Optimal Inventory**", f"{optimal_inventory:,} units", 
-                             f"vs old: {old_method_inventory:,}")
-                with col2:
-                    st.metric("**Safety Stock**", f"{safety_stock:,} units")
-                with col3:
-                    st.metric("**Order Quantity**", f"{order_quantity:,} units")
-                
-                # Show the financial impact prominently
-                st.markdown("---")
-                st.subheader("💵 Financial Impact")
-                
-                savings_col1, savings_col2, savings_col3 = st.columns(3)
-                with savings_col1:
-                    st.metric("**Inventory Reduction**", f"{inventory_reduction:,} units", 
-                             "Less capital tied up")
-                with savings_col2:
-                    st.metric("**Annual Savings**", f"₹{annual_savings:,}", 
-                             "From reduced holding costs")
-                with savings_col3:
-                    st.metric("**ROI**", "Immediate", "First year payoff")
+    with col_right:
+        st.subheader("⚡ AI Recommendations")
+        st.markdown('<div class="success-box">', unsafe_allow_html=True)
+        st.info(f"""
+        **Ready to Analyze: {component}**
+        
+        - **Category**: {category}
+        - **Current Stock**: {current_stock:,} units
+        - **Lead Time**: {lead_time} days
+        - **Service Level**: {service_level*100:.0f}%
+        - **Unit Cost**: ₹{unit_cost:,.2f}
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        if st.button("🚀 Generate AI Insights", type="primary", use_container_width=True):
+            with st.spinner('🤖 AI is analyzing demand patterns...'):
+                try:
+                    # Get the AI forecast
+                    forecast = get_forecast(comp_data, periods=lead_time + 60)
                     
-            except Exception as e:
-                st.error(f"❌ Error in AI analysis: {str(e)}")
-                st.info("This might be because the Prophet model is still training. Try again in a moment.")
+                    # Calculate the key metrics
+                    historical_demand = comp_data['Units_Used'].values
+                    safety_stock = calculate_safety_stock(historical_demand, lead_time, service_level)
+                    optimal_inventory = calculate_optimal_inventory(forecast, lead_time, safety_stock)
+                    order_quantity = calculate_order_quantity(optimal_inventory, current_stock)
+                    
+                    # Calculate cost savings
+                    old_method_inventory = estimate_old_method_inventory(historical_demand)
+                    annual_savings, inventory_reduction, capital_released = calculate_cost_savings(
+                        optimal_inventory, old_method_inventory, unit_cost
+                    )
+                    
+                    # Store results in session state for other tabs
+                    st.session_state.results = {
+                        'optimal_inventory': optimal_inventory,
+                        'safety_stock': safety_stock,
+                        'order_quantity': order_quantity,
+                        'old_method_inventory': old_method_inventory,
+                        'annual_savings': annual_savings,
+                        'inventory_reduction': inventory_reduction,
+                        'capital_released': capital_released
+                    }
+                    
+                    st.success("🎯 AI Analysis Complete!")
+                    
+                except Exception as e:
+                    st.error(f"❌ Error in AI analysis: {str(e)}")
 
-# -------------------- NEW INTERACTIVE CHART EXPLORER SECTION --------------------
+        # Display results if available
+        if 'results' in st.session_state:
+            results = st.session_state.results
+            st.markdown("---")
+            st.subheader("📋 Optimization Results")
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("**Optimal Inventory**", f"{results['optimal_inventory']:,}", 
+                         f"vs old: {results['old_method_inventory']:,}")
+            with col2:
+                st.metric("**Safety Stock**", f"{results['safety_stock']:,}", 
+                         f"{service_level*100:.0f}% service level")
+            with col3:
+                st.metric("**Order Quantity**", f"{results['order_quantity']:,}", 
+                         "Recommended order")
+
+with tab2:
+    st.subheader("💰 Financial Impact Dashboard")
+    
+    if 'results' in st.session_state:
+        results = st.session_state.results
+        
+        # Financial Metrics
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+            st.metric("**Inventory Reduction**", f"{results['inventory_reduction']:,}", "units")
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+            st.metric("**Capital Released**", f"₹{results['capital_released']:,}", "immediate benefit")
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with col3:
+            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+            st.metric("**Annual Savings**", f"₹{results['annual_savings']:,}", "20% holding cost")
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with col4:
+            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+            roi = (results['annual_savings'] / results['capital_released'] * 100) if results['capital_released'] > 0 else 0
+            st.metric("**ROI**", f"{roi:.1f}%", "first year")
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Financial Visualizations
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Savings breakdown chart
+            savings_data = pd.DataFrame({
+                'Category': ['Annual Savings', 'Capital Released'],
+                'Amount': [results['annual_savings'], results['capital_released']],
+                'Type': ['Recurring', 'One-Time']
+            })
+            fig1 = px.bar(savings_data, x='Category', y='Amount', color='Type',
+                         title='💵 Financial Impact Breakdown',
+                         template='plotly_white')
+            st.plotly_chart(fig1, use_container_width=True)
+        
+        with col2:
+            # Inventory comparison chart
+            inventory_data = pd.DataFrame({
+                'Method': ['Old System', 'AI Optimized'],
+                'Inventory': [results['old_method_inventory'], results['optimal_inventory']],
+                'Type': ['Inefficient', 'Optimized']
+            })
+            fig2 = px.bar(inventory_data, x='Method', y='Inventory', color='Type',
+                         title='📦 Inventory Level Comparison',
+                         template='plotly_white')
+            st.plotly_chart(fig2, use_container_width=True)
+        
+        # Priority Status
+        st.markdown("---")
+        if current_stock < results['safety_stock']:
+            st.markdown('<div class="danger-box">', unsafe_allow_html=True)
+            st.error("🚨 CRITICAL: Risk of imminent stockout! Order immediately.")
+            st.markdown('</div>', unsafe_allow_html=True)
+        elif current_stock < results['optimal_inventory']:
+            st.markdown('<div class="warning-box">', unsafe_allow_html=True)
+            st.warning("⚠️  WARNING: Stock levels below optimal. Monitor closely.")
+            st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="success-box">', unsafe_allow_html=True)
+            st.success("✅ HEALTHY: Stock levels are optimal or above.")
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+    else:
+        st.info("👆 Generate AI insights first to see financial dashboard")
+
+with tab3:
+    st.subheader("📊 Portfolio Overview")
+    
+    # Portfolio Metrics
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        total_components = len(current_df)
+        st.metric("Total Components", total_components)
+    
+    with col2:
+        total_inventory_value = (current_df['Current_Stock'] * current_df['Unit_Cost']).sum()
+        st.metric("Total Inventory Value", f"₹{total_inventory_value:,.0f}")
+    
+    with col3:
+        total_categories = current_df['Category'].nunique()
+        st.metric("Product Categories", total_categories)
+    
+    # Category distribution
+    st.subheader("📦 Inventory by Category")
+    category_summary = current_df.groupby('Category').agg({
+        'Component_ID': 'count',
+        'Current_Stock': 'sum',
+        'Unit_Cost': 'mean'
+    }).rename(columns={'Component_ID': 'Count', 'Unit_Cost': 'Avg_Cost'})
+    
+    fig1 = px.pie(current_df, values='Current_Stock', names='Category', 
+                 title='Inventory Distribution by Category',
+                 template='plotly_white')
+    st.plotly_chart(fig1, use_container_width=True)
+    
+    # Cost analysis
+    st.subheader("💵 Unit Cost Analysis")
+    fig2 = px.bar(current_df, x='Component_ID', y='Unit_Cost', color='Category',
+                 title='Unit Cost by Component (₹)',
+                 template='plotly_white')
+    fig2.update_xaxes(tickangle=45)
+    st.plotly_chart(fig2, use_container_width=True)
+
+with tab4:
+    st.subheader("📋 Export Reports")
+    
+    if 'results' in st.session_state:
+        results = st.session_state.results
+        
+        # Purchase Recommendation Report
+        st.markdown("### 📄 Purchase Recommendation Report")
+        
+        report_data = pd.DataFrame({
+            'Parameter': [
+                'Component ID', 'Analysis Date', 'Current Stock', 
+                'Optimal Inventory Level', 'Safety Stock', 'Recommended Order Quantity',
+                'Unit Cost', 'Total Order Value', 'Lead Time', 'Service Level',
+                'Inventory Reduction', 'Capital Released', 'Annual Savings', 'ROI'
+            ],
+            'Value': [
+                component, datetime.now().strftime('%Y-%m-%d'), current_stock,
+                results['optimal_inventory'], results['safety_stock'], results['order_quantity'],
+                unit_cost, results['order_quantity'] * unit_cost, lead_time, f"{service_level*100}%",
+                results['inventory_reduction'], results['capital_released'], 
+                results['annual_savings'], f"{(results['annual_savings']/results['capital_released']*100):.1f}%" if results['capital_released'] > 0 else "N/A"
+            ]
+        })
+        
+        st.dataframe(report_data, use_container_width=True)
+        
+        # Download buttons
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown(create_download_link(report_data, f"purchase_recommendation_{component}.csv", "csv"), unsafe_allow_html=True)
+        
+        with col2:
+            # Generate comprehensive report
+            comprehensive_report = pd.DataFrame({
+                'Component': [component],
+                'Current_Stock': [current_stock],
+                'Optimal_Inventory': [results['optimal_inventory']],
+                'Safety_Stock': [results['safety_stock']],
+                'Order_Quantity': [results['order_quantity']],
+                'Unit_Cost': [unit_cost],
+                'Total_Order_Value': [results['order_quantity'] * unit_cost],
+                'Inventory_Reduction': [results['inventory_reduction']],
+                'Capital_Released': [results['capital_released']],
+                'Annual_Savings': [results['annual_savings']],
+                'ROI_Percentage': [results['annual_savings']/results['capital_released']*100 if results['capital_released'] > 0 else 0],
+                'Lead_Time_Days': [lead_time],
+                'Service_Level': [service_level],
+                'Analysis_Date': [datetime.now().strftime('%Y-%m-%d')]
+            })
+            st.markdown(create_download_link(comprehensive_report, f"comprehensive_report_{component}.csv", "csv"), unsafe_allow_html=True)
+    else:
+        st.info("👆 Generate AI insights first to export reports")
+
+# Footer
 st.markdown("---")
-st.subheader("🔍 Chart Explorer: Customize Your View")
+st.caption("🏆 AI-Powered Inventory Optimization | Built for Hackathon | Powered by Facebook Prophet & Streamlit")
 
-# User chooses how they want to see the data
-chart_col1, chart_col2, chart_col3 = st.columns(3)
-
-with chart_col1:
-    chart_type = st.selectbox(
-        "**Chart Type**",
-        ["Line", "Bar", "Area"],
-        help="Choose how to visualize the data"
-    )
-
-with chart_col2:
-    time_frame = st.selectbox(
-        "**Time Frame**",
-        ["Last 30 Days", "Last 90 Days", "Last Year", "All Time"],
-        index=3,  # Default to "All Time"
-        help="Focus on a specific period"
-    )
-
-with chart_col3:
-    view_by = st.radio(
-        "**View By**",
-        ["Daily", "Weekly", "Monthly"],
-        horizontal=True,
-        help="Aggregate data by time period"
-    )
-
-# Filter data based on user's time frame selection
-latest_date = component_data['Date'].max()
-if time_frame == "Last 30 Days":
-    start_date = latest_date - pd.DateOffset(days=30)
-    filtered_data = component_data[component_data['Date'] >= start_date]
-elif time_frame == "Last 90 Days":
-    start_date = latest_date - pd.DateOffset(days=90)
-    filtered_data = component_data[component_data['Date'] >= start_date]
-elif time_frame == "Last Year":
-    start_date = latest_date - pd.DateOffset(days=365)
-    filtered_data = component_data[component_data['Date'] >= start_date]
-else:  # "All Time"
-    filtered_data = component_data
-
-# Resample data based on user's "View By" selection
-if view_by == "Weekly":
-    # Group by week, summing the units used
-    view_data = filtered_data.set_index('Date').resample('W')['Units_Used'].sum().reset_index()
-    view_data['Period'] = view_data['Date'].dt.strftime('Week %U, %Y')
-    x_axis = 'Period'
-elif view_by == "Monthly":
-    # Group by month, summing the units used
-    view_data = filtered_data.set_index('Date').resample('M')['Units_Used'].sum().reset_index()
-    view_data['Period'] = view_data['Date'].dt.strftime('%B %Y')
-    x_axis = 'Period'
-else:  # "Daily"
-    view_data = filtered_data
-    x_axis = 'Date'
-
-# Create the chart based on user's chart type selection
-if chart_type == "Bar":
-    fig_custom = px.bar(view_data, x=x_axis, y='Units_Used', 
-                       title=f'{chart_type} Chart: {selected_component} ({time_frame} by {view_by})')
-elif chart_type == "Area":
-    fig_custom = px.area(view_data, x=x_axis, y='Units_Used', 
-                        title=f'{chart_type} Chart: {selected_component} ({time_frame} by {view_by})')
-else:  # "Line" is default
-    fig_custom = px.line(view_data, x=x_axis, y='Units_Used', 
-                        title=f'{chart_type} Chart: {selected_component} ({time_frame} by {view_by})')
-
-# Display the customized chart
-st.plotly_chart(fig_custom, use_container_width=True)
-
-# -------------------- CONTINUE WITH EXISTING CODE --------------------
-# Row 3: Data Preview
-st.subheader("📋 Raw Data Preview")
-st.dataframe(component_data.tail(10).style.background_gradient(), use_container_width=True)
-
-# -------------------- FOOTER --------------------
-st.markdown("---")
-st.caption("**AI-Powered Inventory Optimization** | Built for CREONIX '25 Hackathon | 🚀 Powered by Streamlit")
+# Run the app
+if __name__ == "__main__":
+    pass
