@@ -5,81 +5,130 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 import base64
-import io
 from calculations import *
 from model import get_forecast
 
 # Page config
 st.set_page_config(
     page_title="AI Inventory Command Center",
-    page_icon="📊",
+    page_icon="🏭",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for professional look
+# Custom CSS for BOLD, CLEAN, PROFESSIONAL look
 st.markdown("""
 <style>
+    /* MAIN HEADERS - BIG, BOLD, CLEAN */
     .main-header {
-        font-size: 2.8rem;
-        font-weight: 700;
+        font-size: 3.5rem;
+        font-weight: 900;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         text-align: center;
-        padding: 1rem 0;
-        margin-bottom: 1rem;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
     }
     
+    /* SECTION HEADERS - BOLD AND CLEAR */
+    .section-header {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #2c3e50;
+        border-bottom: 4px solid #667eea;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+        text-transform: uppercase;
+    }
+    
+    /* METRIC CARDS - CLEAN AND PROFESSIONAL */
     .metric-card {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        padding: 1.5rem;
-        border-radius: 15px;
-        border-left: 5px solid #667eea;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        margin-bottom: 1rem;
-        transition: transform 0.3s ease;
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        border: 3px solid #e0e6ed;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        margin-bottom: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
     }
     
     .metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        border-color: #667eea;
     }
     
+    /* BUTTONS - BOLD AND MODERN */
     .stButton>button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        border-radius: 8px;
-        padding: 12px 24px;
-        font-weight: 600;
+        border-radius: 12px;
+        padding: 15px 30px;
+        font-weight: 800;
+        font-size: 1.1rem;
         transition: all 0.3s ease;
+        width: 100%;
     }
     
     .stButton>button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     }
     
-    .success-box {
-        background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
-        border-radius: 12px;
+    /* SIDEBAR - CLEAN AND ORGANIZED */
+    .sidebar-section {
+        background: white;
         padding: 1.5rem;
-        border-left: 5px solid #00bcd4;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        border: 2px solid #e0e6ed;
     }
     
-    .warning-box {
-        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-        border-radius: 12px;
-        padding: 1.5rem;
-        border-left: 5px solid #ff9800;
+    /* STATUS BOXES - BOLD AND CLEAR */
+    .status-healthy {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 3px solid #28a745;
+        border-radius: 15px;
+        padding: 2rem;
+        font-weight: 700;
+        font-size: 1.3rem;
     }
     
-    .danger-box {
-        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-        border-radius: 12px;
-        padding: 1.5rem;
-        border-left: 5px solid #f44336;
+    .status-warning {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 3px solid #ffc107;
+        border-radius: 15px;
+        padding: 2rem;
+        font-weight: 700;
+        font-size: 1.3rem;
+    }
+    
+    .status-critical {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border: 3px solid #dc3545;
+        border-radius: 15px;
+        padding: 2rem;
+        font-weight: 700;
+        font-size: 1.3rem;
+    }
+    
+    /* BOLD FONT THROUGHOUT */
+    body {
+        font-weight: 600 !important;
+    }
+    
+    /* CHART CONTAINERS */
+    .chart-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        border: 2px solid #e0e6ed;
+        margin-bottom: 2rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -93,42 +142,39 @@ def load_data():
         historical['Date'] = pd.to_datetime(historical['Date'])
         return historical, current
     except FileNotFoundError:
-        st.error("❌ Data files not found! Please run: python create_pro_dataset.py")
+        st.error("❌ DATA FILES NOT FOUND! Please run: python create_pro_dataset.py")
         return None, None
 
-def create_download_link(df, filename, file_type):
-    """Generate download link for CSV or PDF"""
-    if file_type == 'csv':
-        csv = df.to_csv(index=False)
-        b64 = base64.b64encode(csv.encode()).decode()
-        href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">📥 Download {filename}</a>'
+def create_download_link(df, filename):
+    """Generate download link for CSV"""
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(csv.encode()).decode()
+    href = f'<a href="data:file/csv;base64,{b64}" download="{filename}" style="font-weight: 800; font-size: 1.2rem;">📥 DOWNLOAD {filename}</a>'
     return href
 
+# Load data
 historical_df, current_df = load_data()
 if historical_df is None:
     st.stop()
 
-# Sidebar - Control Center
-st.sidebar.markdown('<div class="metric-card">', unsafe_allow_html=True)
-st.sidebar.title("🔧 Control Center")
+# Sidebar - Persistent across all pages
+st.sidebar.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
+st.sidebar.markdown('## 🔧 **CONTROL CENTER**')
 st.sidebar.markdown("---")
 
 component = st.sidebar.selectbox(
-    "**Select Electronic Component**",
-    sorted(historical_df['Component_ID'].unique()),
-    help="Choose which component to analyze"
+    "**SELECT ELECTRONIC COMPONENT**",
+    sorted(historical_df['Component_ID'].unique())
 )
 
 lead_time = st.sidebar.slider(
-    "**Supplier Lead Time (Days)**",
-    min_value=7, max_value=90, value=30,
-    help="Total time from order to delivery"
+    "**SUPPLIER LEAD TIME (DAYS)**",
+    min_value=7, max_value=90, value=30
 )
 
 service_level = st.sidebar.slider(
-    "**Target Service Level**",
-    min_value=0.85, max_value=0.99, value=0.95,
-    help="Probability of avoiding stockouts (0.95 = 95%)"
+    "**TARGET SERVICE LEVEL**",
+    min_value=0.85, max_value=0.99, value=0.95
 )
 
 # Get component data
@@ -139,321 +185,337 @@ category = current_df[current_df['Component_ID'] == component]['Category'].value
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"""
-**Component Details:**
-- **Category**: {category}
-- **Current Stock**: {current_stock:,} units
-- **Unit Cost**: ₹{unit_cost:,.2f}
+**COMPONENT DETAILS:**
+- **CATEGORY**: {category}
+- **CURRENT STOCK**: {current_stock:,} units
+- **UNIT COST**: ₹{unit_cost:,.2f}
 """)
+
+# AI Analysis Button
+if st.sidebar.button("🚀 **GENERATE AI INSIGHTS**", type="primary"):
+    with st.spinner('🤖 AI IS ANALYZING DEMAND PATTERNS...'):
+        try:
+            forecast = get_forecast(comp_data, periods=lead_time + 60)
+            historical_demand = comp_data['Units_Used'].values
+            safety_stock = calculate_safety_stock(historical_demand, lead_time, service_level)
+            optimal_inventory = calculate_optimal_inventory(forecast, lead_time, safety_stock)
+            order_quantity = calculate_order_quantity(optimal_inventory, current_stock)
+            old_method_inventory = estimate_old_method_inventory(historical_demand)
+            annual_savings, inventory_reduction, capital_released = calculate_cost_savings(
+                optimal_inventory, old_method_inventory, unit_cost
+            )
+            
+            st.session_state.results = {
+                'optimal_inventory': optimal_inventory,
+                'safety_stock': safety_stock,
+                'order_quantity': order_quantity,
+                'old_method_inventory': old_method_inventory,
+                'annual_savings': annual_savings,
+                'inventory_reduction': inventory_reduction,
+                'capital_released': capital_released
+            }
+            st.session_state.analysis_done = True
+        except Exception as e:
+            st.error(f"❌ ERROR IN AI ANALYSIS: {str(e)}")
+
 st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
-# Main Dashboard
-st.markdown('<h1 class="main-header">🏭 AI Inventory Command Center</h1>', unsafe_allow_html=True)
-st.markdown("---")
+# Multi-page navigation
+page = st.sidebar.radio("**NAVIGATION**", 
+    ["📊 **DASHBOARD OVERVIEW**", "📈 **DEMAND ANALYSIS**", "💰 **FINANCIAL PERFORMANCE**", 
+     "🏭 **PORTFOLIO REVIEW**", "📋 **EXPORT REPORTS**"], 
+    index=0)
 
-# Top Metrics Row
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-    st.metric("**Current Stock**", f"{current_stock:,}", "units")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-with col2:
-    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-    avg_daily = comp_data['Units_Used'].mean()
-    st.metric("**Avg Daily Demand**", f"{avg_daily:,.0f}", "units/day")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-with col3:
-    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-    st.metric("**Unit Cost**", f"₹{unit_cost:,.2f}", "per unit")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-with col4:
-    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-    st.metric("**Service Level**", f"{service_level*100:.0f}%", "target")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-st.markdown("---")
-
-# Main Content
-tab1, tab2, tab3, tab4 = st.tabs(["📈 Demand Analysis", "💰 Financial Dashboard", "📊 Portfolio Overview", "📋 Export Reports"])
-
-with tab1:
-    col_left, col_right = st.columns([2, 1])
+# PAGE 1: DASHBOARD OVERVIEW
+if page == "📊 **DASHBOARD OVERVIEW**":
+    st.markdown('<h1 class="main-header">🏭 AI INVENTORY COMMAND CENTER</h1>', unsafe_allow_html=True)
     
-    with col_left:
-        st.subheader("📊 Demand Forecast Analysis")
-        
-        # Interactive chart with customization
-        chart_col1, chart_col2 = st.columns(2)
-        with chart_col1:
-            chart_type = st.selectbox("Chart Style", ["Line", "Area", "Bar"], key="chart_type")
-        with chart_col2:
-            time_frame = st.selectbox("Time Frame", ["Last 90 Days", "Last 180 Days", "Last Year", "All Time"], key="time_frame")
-        
-        # Filter data based on selection
-        if time_frame == "Last 90 Days":
-            chart_data = comp_data.tail(90)
-        elif time_frame == "Last 180 Days":
-            chart_data = comp_data.tail(180)
-        elif time_frame == "Last Year":
-            chart_data = comp_data[comp_data['Date'] >= comp_data['Date'].max() - pd.DateOffset(days=365)]
-        else:
-            chart_data = comp_data
-        
-        # Create chart based on selection
-        if chart_type == "Line":
-            fig = px.line(chart_data, x='Date', y='Units_Used', 
-                         title=f'📈 {component} Demand Pattern ({time_frame})',
-                         template='plotly_white')
-        elif chart_type == "Area":
-            fig = px.area(chart_data, x='Date', y='Units_Used',
-                         title=f'📊 {component} Demand Pattern ({time_frame})',
-                         template='plotly_white')
-        else:
-            fig = px.bar(chart_data, x='Date', y='Units_Used',
-                        title=f'📋 {component} Demand Pattern ({time_frame})',
-                        template='plotly_white')
-        
-        fig.update_layout(height=500, showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col_right:
-        st.subheader("⚡ AI Recommendations")
-        st.markdown('<div class="success-box">', unsafe_allow_html=True)
-        st.info(f"""
-        **Ready to Analyze: {component}**
-        
-        - **Category**: {category}
-        - **Current Stock**: {current_stock:,} units
-        - **Lead Time**: {lead_time} days
-        - **Service Level**: {service_level*100:.0f}%
-        - **Unit Cost**: ₹{unit_cost:,.2f}
-        """)
+    # Key Metrics Row - BIG AND BOLD
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("**CURRENT STOCK**", f"{current_stock:,}", "UNITS", delta_color="off")
         st.markdown('</div>', unsafe_allow_html=True)
-        
-        if st.button("🚀 Generate AI Insights", type="primary", use_container_width=True):
-            with st.spinner('🤖 AI is analyzing demand patterns...'):
-                try:
-                    # Get the AI forecast
-                    forecast = get_forecast(comp_data, periods=lead_time + 60)
-                    
-                    # Calculate the key metrics
-                    historical_demand = comp_data['Units_Used'].values
-                    safety_stock = calculate_safety_stock(historical_demand, lead_time, service_level)
-                    optimal_inventory = calculate_optimal_inventory(forecast, lead_time, safety_stock)
-                    order_quantity = calculate_order_quantity(optimal_inventory, current_stock)
-                    
-                    # Calculate cost savings
-                    old_method_inventory = estimate_old_method_inventory(historical_demand)
-                    annual_savings, inventory_reduction, capital_released = calculate_cost_savings(
-                        optimal_inventory, old_method_inventory, unit_cost
-                    )
-                    
-                    # Store results in session state for other tabs
-                    st.session_state.results = {
-                        'optimal_inventory': optimal_inventory,
-                        'safety_stock': safety_stock,
-                        'order_quantity': order_quantity,
-                        'old_method_inventory': old_method_inventory,
-                        'annual_savings': annual_savings,
-                        'inventory_reduction': inventory_reduction,
-                        'capital_released': capital_released
-                    }
-                    
-                    st.success("🎯 AI Analysis Complete!")
-                    
-                except Exception as e:
-                    st.error(f"❌ Error in AI analysis: {str(e)}")
-
-        # Display results if available
-        if 'results' in st.session_state:
-            results = st.session_state.results
-            st.markdown("---")
-            st.subheader("📋 Optimization Results")
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("**Optimal Inventory**", f"{results['optimal_inventory']:,}", 
-                         f"vs old: {results['old_method_inventory']:,}")
-            with col2:
-                st.metric("**Safety Stock**", f"{results['safety_stock']:,}", 
-                         f"{service_level*100:.0f}% service level")
-            with col3:
-                st.metric("**Order Quantity**", f"{results['order_quantity']:,}", 
-                         "Recommended order")
-
-with tab2:
-    st.subheader("💰 Financial Impact Dashboard")
     
+    with col2:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        avg_daily = comp_data['Units_Used'].mean()
+        st.metric("**AVG DAILY DEMAND**", f"{avg_daily:,.0f}", "UNITS/DAY", delta_color="off")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("**UNIT COST**", f"₹{unit_cost:,.2f}", "PER UNIT", delta_color="off")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("**SERVICE LEVEL**", f"{service_level*100:.0f}%", "TARGET", delta_color="off")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # AI Results Section
     if 'results' in st.session_state:
         results = st.session_state.results
         
-        # Financial Metrics
-        col1, col2, col3, col4 = st.columns(4)
+        st.markdown('<div class="section-header">🎯 AI OPTIMIZATION RESULTS</div>', unsafe_allow_html=True)
+        
+        # Optimization Metrics
+        col1, col2, col3 = st.columns(3)
         with col1:
             st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            st.metric("**Inventory Reduction**", f"{results['inventory_reduction']:,}", "units")
+            st.metric("**OPTIMAL INVENTORY**", f"{results['optimal_inventory']:,}", 
+                     f"VS OLD: {results['old_method_inventory']:,}")
             st.markdown('</div>', unsafe_allow_html=True)
         
         with col2:
             st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            st.metric("**Capital Released**", f"₹{results['capital_released']:,}", "immediate benefit")
+            st.metric("**SAFETY STOCK**", f"{results['safety_stock']:,}", 
+                     f"{service_level*100:.0f}% SERVICE LEVEL")
             st.markdown('</div>', unsafe_allow_html=True)
         
         with col3:
             st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            st.metric("**Annual Savings**", f"₹{results['annual_savings']:,}", "20% holding cost")
+            st.metric("**ORDER QUANTITY**", f"{results['order_quantity']:,}", "RECOMMENDED ORDER")
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Status Box
+        if current_stock < results['safety_stock']:
+            st.markdown('<div class="status-critical">🚨 CRITICAL: RISK OF IMMINENT STOCKOUT! ORDER IMMEDIATELY.</div>', unsafe_allow_html=True)
+        elif current_stock < results['optimal_inventory']:
+            st.markdown('<div class="status-warning">⚠️ WARNING: STOCK LEVELS BELOW OPTIMAL. MONITOR CLOSELY.</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="status-healthy">✅ HEALTHY: STOCK LEVELS ARE OPTIMAL OR ABOVE.</div>', unsafe_allow_html=True)
+    
+    else:
+        st.markdown('<div class="section-header">🚀 GET STARTED</div>', unsafe_allow_html=True)
+        st.info("**CLICK 'GENERATE AI INSIGHTS' IN THE SIDEBAR TO BEGIN ANALYSIS**")
+
+# PAGE 2: DEMAND ANALYSIS
+elif page == "📈 **DEMAND ANALYSIS**":
+    st.markdown('<h1 class="main-header">📈 DEMAND ANALYSIS</h1>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown('<div class="section-header">📊 DEMAND FORECAST ANALYSIS</div>', unsafe_allow_html=True)
+        
+        # Chart customization
+        chart_col1, chart_col2 = st.columns(2)
+        with chart_col1:
+            chart_type = st.selectbox("**CHART STYLE**", ["Line", "Area", "Bar"])
+        with chart_col2:
+            time_frame = st.selectbox("**TIME FRAME**", ["Last 90 Days", "Last 180 Days", "Last Year", "All Time"])
+        
+        # Filter data
+        if time_frame == "Last 90 Days": chart_data = comp_data.tail(90)
+        elif time_frame == "Last 180 Days": chart_data = comp_data.tail(180)
+        elif time_frame == "Last Year": chart_data = comp_data[comp_data['Date'] >= comp_data['Date'].max() - pd.DateOffset(days=365)]
+        else: chart_data = comp_data
+        
+        # Create chart
+        if chart_type == "Line":
+            fig = px.line(chart_data, x='Date', y='Units_Used', template='plotly_white')
+        elif chart_type == "Area":
+            fig = px.area(chart_data, x='Date', y='Units_Used', template='plotly_white')
+        else:
+            fig = px.bar(chart_data, x='Date', y='Units_Used', template='plotly_white')
+        
+        fig.update_layout(
+            height=600,
+            title=f"**{component} - {time_frame} Demand Pattern**",
+            title_font_size=20,
+            title_font_weight="bold"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        st.markdown('<div class="section-header">📈 QUICK STATS</div>', unsafe_allow_html=True)
+        
+        stats_data = {
+            'Statistic': ['Max Daily Demand', 'Min Daily Demand', 'Average Demand', 'Demand Volatility', 'Trend'],
+            'Value': [
+                f"{comp_data['Units_Used'].max():,}",
+                f"{comp_data['Units_Used'].min():,}",
+                f"{comp_data['Units_Used'].mean():.0f}",
+                f"{comp_data['Units_Used'].std():.0f}",
+                '📈 Growing' if comp_data['Units_Used'].iloc[-30:].mean() > comp_data['Units_Used'].iloc[:30].mean() else '📉 Declining'
+            ]
+        }
+        
+        stats_df = pd.DataFrame(stats_data)
+        st.dataframe(stats_df, use_container_width=True, hide_index=True)
+
+# PAGE 3: FINANCIAL PERFORMANCE
+elif page == "💰 **FINANCIAL PERFORMANCE**":
+    st.markdown('<h1 class="main-header">💰 FINANCIAL PERFORMANCE</h1>', unsafe_allow_html=True)
+    
+    if 'results' in st.session_state:
+        results = st.session_state.results
+        
+        # Financial Metrics - BIG AND BOLD
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+            st.metric("**INVENTORY REDUCTION**", f"{results['inventory_reduction']:,}", "UNITS")
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+            st.metric("**CAPITAL RELEASED**", f"₹{results['capital_released']:,}", "IMMEDIATE BENEFIT")
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with col3:
+            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+            st.metric("**ANNUAL SAVINGS**", f"₹{results['annual_savings']:,}", "20% HOLDING COST")
             st.markdown('</div>', unsafe_allow_html=True)
         
         with col4:
             st.markdown('<div class="metric-card">', unsafe_allow_html=True)
             roi = (results['annual_savings'] / results['capital_released'] * 100) if results['capital_released'] > 0 else 0
-            st.metric("**ROI**", f"{roi:.1f}%", "first year")
+            st.metric("**ROI**", f"{roi:.1f}%", "FIRST YEAR")
             st.markdown('</div>', unsafe_allow_html=True)
         
         # Financial Visualizations
+        st.markdown('<div class="section-header">📊 FINANCIAL ANALYTICS</div>', unsafe_allow_html=True)
+        
         col1, col2 = st.columns(2)
         
         with col1:
-            # Savings breakdown chart
+            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
             savings_data = pd.DataFrame({
                 'Category': ['Annual Savings', 'Capital Released'],
-                'Amount': [results['annual_savings'], results['capital_released']],
-                'Type': ['Recurring', 'One-Time']
+                'Amount': [results['annual_savings'], results['capital_released']]
             })
-            fig1 = px.bar(savings_data, x='Category', y='Amount', color='Type',
-                         title='💵 Financial Impact Breakdown',
+            fig1 = px.bar(savings_data, x='Category', y='Amount', 
+                         title='**💵 FINANCIAL IMPACT BREAKDOWN**',
                          template='plotly_white')
             st.plotly_chart(fig1, use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
         
         with col2:
-            # Inventory comparison chart
+            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
             inventory_data = pd.DataFrame({
                 'Method': ['Old System', 'AI Optimized'],
-                'Inventory': [results['old_method_inventory'], results['optimal_inventory']],
-                'Type': ['Inefficient', 'Optimized']
+                'Inventory': [results['old_method_inventory'], results['optimal_inventory']]
             })
-            fig2 = px.bar(inventory_data, x='Method', y='Inventory', color='Type',
-                         title='📦 Inventory Level Comparison',
+            fig2 = px.bar(inventory_data, x='Method', y='Inventory', 
+                         title='**📦 INVENTORY LEVEL COMPARISON**',
                          template='plotly_white')
             st.plotly_chart(fig2, use_container_width=True)
-        
-        # Priority Status
-        st.markdown("---")
-        if current_stock < results['safety_stock']:
-            st.markdown('<div class="danger-box">', unsafe_allow_html=True)
-            st.error("🚨 CRITICAL: Risk of imminent stockout! Order immediately.")
             st.markdown('</div>', unsafe_allow_html=True)
-        elif current_stock < results['optimal_inventory']:
-            st.markdown('<div class="warning-box">', unsafe_allow_html=True)
-            st.warning("⚠️  WARNING: Stock levels below optimal. Monitor closely.")
-            st.markdown('</div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div class="success-box">', unsafe_allow_html=True)
-            st.success("✅ HEALTHY: Stock levels are optimal or above.")
-            st.markdown('</div>', unsafe_allow_html=True)
-            
+    
     else:
-        st.info("👆 Generate AI insights first to see financial dashboard")
+        st.info("**GENERATE AI INSIGHTS FIRST TO VIEW FINANCIAL PERFORMANCE**")
 
-with tab3:
-    st.subheader("📊 Portfolio Overview")
+# PAGE 4: PORTFOLIO REVIEW
+elif page == "🏭 **PORTFOLIO REVIEW**":
+    st.markdown('<h1 class="main-header">🏭 PORTFOLIO REVIEW</h1>', unsafe_allow_html=True)
     
     # Portfolio Metrics
     col1, col2, col3 = st.columns(3)
     with col1:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         total_components = len(current_df)
-        st.metric("Total Components", total_components)
+        st.metric("**TOTAL COMPONENTS**", f"{total_components}", "PRODUCTS")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         total_inventory_value = (current_df['Current_Stock'] * current_df['Unit_Cost']).sum()
-        st.metric("Total Inventory Value", f"₹{total_inventory_value:,.0f}")
+        st.metric("**TOTAL INVENTORY VALUE**", f"₹{total_inventory_value:,.0f}", "TOTAL VALUE")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with col3:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         total_categories = current_df['Category'].nunique()
-        st.metric("Product Categories", total_categories)
+        st.metric("**PRODUCT CATEGORIES**", f"{total_categories}", "CATEGORIES")
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    # Category distribution
-    st.subheader("📦 Inventory by Category")
-    category_summary = current_df.groupby('Category').agg({
-        'Component_ID': 'count',
-        'Current_Stock': 'sum',
-        'Unit_Cost': 'mean'
-    }).rename(columns={'Component_ID': 'Count', 'Unit_Cost': 'Avg_Cost'})
+    # Visualizations
+    st.markdown('<div class="section-header">📊 PORTFOLIO ANALYTICS</div>', unsafe_allow_html=True)
     
-    fig1 = px.pie(current_df, values='Current_Stock', names='Category', 
-                 title='Inventory Distribution by Category',
-                 template='plotly_white')
-    st.plotly_chart(fig1, use_container_width=True)
+    col1, col2 = st.columns(2)
     
-    # Cost analysis
-    st.subheader("💵 Unit Cost Analysis")
-    fig2 = px.bar(current_df, x='Component_ID', y='Unit_Cost', color='Category',
-                 title='Unit Cost by Component (₹)',
-                 template='plotly_white')
-    fig2.update_xaxes(tickangle=45)
-    st.plotly_chart(fig2, use_container_width=True)
+    with col1:
+        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+        fig1 = px.pie(current_df, values='Current_Stock', names='Category', 
+                     title='**📦 INVENTORY DISTRIBUTION BY CATEGORY**',
+                     template='plotly_white')
+        st.plotly_chart(fig1, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+        fig2 = px.bar(current_df, x='Component_ID', y='Unit_Cost', color='Category',
+                     title='**💵 UNIT COST BY COMPONENT**',
+                     template='plotly_white')
+        fig2.update_xaxes(tickangle=45)
+        st.plotly_chart(fig2, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-with tab4:
-    st.subheader("📋 Export Reports")
+# PAGE 5: EXPORT REPORTS
+elif page == "📋 **EXPORT REPORTS**":
+    st.markdown('<h1 class="main-header">📋 EXPORT REPORTS</h1>', unsafe_allow_html=True)
     
     if 'results' in st.session_state:
         results = st.session_state.results
         
-        # Purchase Recommendation Report
-        st.markdown("### 📄 Purchase Recommendation Report")
+        st.markdown('<div class="section-header">📄 PURCHASE RECOMMENDATION REPORT</div>', unsafe_allow_html=True)
         
+        # Comprehensive Report
         report_data = pd.DataFrame({
-            'Parameter': [
-                'Component ID', 'Analysis Date', 'Current Stock', 
-                'Optimal Inventory Level', 'Safety Stock', 'Recommended Order Quantity',
-                'Unit Cost', 'Total Order Value', 'Lead Time', 'Service Level',
-                'Inventory Reduction', 'Capital Released', 'Annual Savings', 'ROI'
+            'PARAMETER': [
+                'COMPONENT ID', 'ANALYSIS DATE', 'CURRENT STOCK', 
+                'OPTIMAL INVENTORY LEVEL', 'SAFETY STOCK', 'RECOMMENDED ORDER QUANTITY',
+                'UNIT COST', 'TOTAL ORDER VALUE', 'LEAD TIME', 'SERVICE LEVEL',
+                'INVENTORY REDUCTION', 'CAPITAL RELEASED', 'ANNUAL SAVINGS', 'ROI'
             ],
-            'Value': [
-                component, datetime.now().strftime('%Y-%m-%d'), current_stock,
-                results['optimal_inventory'], results['safety_stock'], results['order_quantity'],
-                unit_cost, results['order_quantity'] * unit_cost, lead_time, f"{service_level*100}%",
-                results['inventory_reduction'], results['capital_released'], 
-                results['annual_savings'], f"{(results['annual_savings']/results['capital_released']*100):.1f}%" if results['capital_released'] > 0 else "N/A"
+            'VALUE': [
+                component, datetime.now().strftime('%Y-%m-%d'), f"{current_stock:,}",
+                f"{results['optimal_inventory']:,}", f"{results['safety_stock']:,}", f"{results['order_quantity']:,}",
+                f"₹{unit_cost:,.2f}", f"₹{results['order_quantity'] * unit_cost:,}", f"{lead_time} days", f"{service_level*100}%",
+                f"{results['inventory_reduction']:,}", f"₹{results['capital_released']:,}", 
+                f"₹{results['annual_savings']:,}", f"{(results['annual_savings']/results['capital_released']*100):.1f}%" if results['capital_released'] > 0 else "N/A"
             ]
         })
         
         st.dataframe(report_data, use_container_width=True)
         
-        # Download buttons
+        # Download Section
+        st.markdown('<div class="section-header">📥 DOWNLOAD REPORTS</div>', unsafe_allow_html=True)
+        
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown(create_download_link(report_data, f"purchase_recommendation_{component}.csv", "csv"), unsafe_allow_html=True)
+            st.markdown(create_download_link(report_data, f"PURCHASE_RECOMMENDATION_{component}.csv"), unsafe_allow_html=True)
         
         with col2:
-            # Generate comprehensive report
             comprehensive_report = pd.DataFrame({
-                'Component': [component],
-                'Current_Stock': [current_stock],
-                'Optimal_Inventory': [results['optimal_inventory']],
-                'Safety_Stock': [results['safety_stock']],
-                'Order_Quantity': [results['order_quantity']],
-                'Unit_Cost': [unit_cost],
-                'Total_Order_Value': [results['order_quantity'] * unit_cost],
-                'Inventory_Reduction': [results['inventory_reduction']],
-                'Capital_Released': [results['capital_released']],
-                'Annual_Savings': [results['annual_savings']],
-                'ROI_Percentage': [results['annual_savings']/results['capital_released']*100 if results['capital_released'] > 0 else 0],
-                'Lead_Time_Days': [lead_time],
-                'Service_Level': [service_level],
-                'Analysis_Date': [datetime.now().strftime('%Y-%m-%d')]
+                'COMPONENT': [component],
+                'CURRENT_STOCK': [current_stock],
+                'OPTIMAL_INVENTORY': [results['optimal_inventory']],
+                'SAFETY_STOCK': [results['safety_stock']],
+                'ORDER_QUANTITY': [results['order_quantity']],
+                'UNIT_COST': [unit_cost],
+                'TOTAL_ORDER_VALUE': [results['order_quantity'] * unit_cost],
+                'INVENTORY_REDUCTION': [results['inventory_reduction']],
+                'CAPITAL_RELEASED': [results['capital_released']],
+                'ANNUAL_SAVINGS': [results['annual_savings']],
+                'ROI_PERCENTAGE': [results['annual_savings']/results['capital_released']*100 if results['capital_released'] > 0 else 0],
+                'LEAD_TIME_DAYS': [lead_time],
+                'SERVICE_LEVEL': [service_level],
+                'ANALYSIS_DATE': [datetime.now().strftime('%Y-%m-%d')]
             })
-            st.markdown(create_download_link(comprehensive_report, f"comprehensive_report_{component}.csv", "csv"), unsafe_allow_html=True)
+            st.markdown(create_download_link(comprehensive_report, f"COMPREHENSIVE_REPORT_{component}.csv"), unsafe_allow_html=True)
+    
     else:
-        st.info("👆 Generate AI insights first to export reports")
+        st.info("**GENERATE AI INSIGHTS FIRST TO EXPORT REPORTS**")
 
 # Footer
 st.markdown("---")
-st.caption("🏆 AI-Powered Inventory Optimization | Built for Hackathon | Powered by Facebook Prophet & Streamlit")
 
-# Run the app
+
 if __name__ == "__main__":
     pass
