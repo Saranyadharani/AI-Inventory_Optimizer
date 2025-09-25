@@ -22,115 +22,89 @@ st.set_page_config(
 # -------------------- CUSTOM CSS --------------------
 # -------------------- CUSTOM CSS --------------------
 # -------------------- CUSTOM CSS --------------------
+
+# -------------------- CUSTOM CSS --------------------
 st.markdown("""
 <style>
-    /* MAKE EVERY SINGLE THING BOLD AND DARK */
-    * {
-        font-weight: 700 !important;
-        color: #000000 !important;
-    }
-    
-    /* Specific targeting for Streamlit components */
-    .stApp, .stApp * {
-        font-weight: 700 !important;
-        color: #000000 !important;
-    }
-    
-    /* Headers - Extra Bold */
-    h1, h2, h3, h4, h5, h6 {
-        font-weight: 900 !important;
-        color: #000000 !important;
-    }
-    
-    /* Metrics - Ultra Bold */
-    [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
-        font-weight: 900 !important;
-        color: #000000 !important;
-    }
-    
-    /* Sidebar - Bold White Text */
-    .stSidebar * {
-        font-weight: 700 !important;
-        color: #ffffff !important;
-    }
-    
-    /* Buttons */
-    .stButton > button {
-        font-weight: 800 !important;
-    }
-    
-    /* Select boxes, sliders, inputs */
-    .stSelectbox, .stSlider, .stTextInput, .stNumberInput {
-        font-weight: 700 !important;
-        color: #000000 !important;
-    }
-    
-    /* Dataframes and tables */
-    .stDataFrame, .stTable {
-        font-weight: 700 !important;
-    }
-    
-    /* Info boxes, success, warning messages */
-    .stAlert, .stInfo, .stSuccess, .stWarning, .stError {
-        font-weight: 700 !important;
-        color: #000000 !important;
-    }
-    
-    /* Radio buttons, checkboxes */
-    .stRadio, .stCheckbox {
-        font-weight: 700 !important;
-    }
-    
-    /* Main app background */
+    /* DARKER BACKGROUND FOR BETTER CONTRAST */
     .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 1.2rem !important;
+        background: linear-gradient(135deg, #e1e8f0 0%, #a7b8d4 100%) !important;
     }
     
-    /* Main header styling */
+    /* MAKE ALL TEXT DARK AND BOLD */
+    .stApp * {
+        font-weight: 700 !important;
+        color: #1a1a1a !important;
+        text-shadow: 0.5px 0.5px 1px rgba(255,255,255,0.7) !important;
+    }
+    
+    /* SIDEBAR - DARK BACKGROUND WITH WHITE TEXT */
+    .stSidebar {
+        background: linear-gradient(180deg, #1a1a1a 0%, #2d3748 100%) !important;
+    }
+    
+    .stSidebar * {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+    
+    /* HEADERS - EXTRA BOLD */
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 800 !important;
+        color: #000000 !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1) !important;
+    }
+    
+    /* MAIN HEADER - PROMINENT */
     .main-header {
         font-size: 3.5rem !important;
         font-weight: 900 !important;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        background: linear-gradient(135deg, #000000 0%, #434343 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
         padding: 0.5rem 0;
         text-align: center;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
     }
     
-    /* Sidebar header */
-    .sidebar-header {
-        color: #ffffff !important;
-        font-size: 1.8rem !important;
+    /* METRICS - STAND OUT */
+    [data-testid="stMetricValue"] {
+        font-size: 2.5rem !important;
         font-weight: 900 !important;
+        color: #000000 !important;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        font-size: 1.3rem !important;
+        font-weight: 700 !important;
+        color: #1a1a1a !important;
+    }
+    
+    /* SIDEBAR HEADER */
+    .sidebar-header {
+        font-size: 1.8rem !important;
+        font-weight: 800 !important;
         padding: 1rem;
         text-align: center;
-        background: rgba(0,0,0,0.2);
+        background: rgba(255,255,255,0.1) !important;
         border-radius: 10px;
         margin-bottom: 2rem;
+        color: #ffffff !important;
     }
     
-    /* Metric card styling */
-    [data-testid="stMetric"] {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border-left: 4px solid #667eea;
-        transition: transform 0.2s ease;
+    /* INPUTS - DARK TEXT ON WHITE BACKGROUND */
+    .stSelectbox, .stSlider, .stTextInput, .stNumberInput {
+        background-color: white !important;
+        color: #000000 !important;
+        font-weight: 600 !important;
+        border-radius: 5px;
+        padding: 5px;
     }
     
-    [data-testid="stMetric"]:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    }
-    
-    /* Button styling */
+    /* BUTTONS */
     .stButton > button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: linear-gradient(135deg, #000000 0%, #434343 100%) !important;
+        color: white !important;
         font-weight: 800 !important;
         font-size: 1.3rem !important;
         border: none;
@@ -138,12 +112,28 @@ st.markdown("""
         padding: 0.8rem 1.5rem;
         width: 100%;
         transition: all 0.3s ease;
-        letter-spacing: 0.5px;
     }
     
     .stButton > button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important;
+    }
+    
+    /* INFO BOXES - DARK TEXT */
+    .stInfo, .stSuccess, .stWarning {
+        background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%) !important;
+        color: #000000 !important;
+        font-weight: 600 !important;
+        border-left: 4px solid #000000 !important;
+    }
+    
+    /* METRIC CARDS */
+    [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+        border-left: 4px solid #000000 !important;
     }
 </style>
 """, unsafe_allow_html=True)
