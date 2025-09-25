@@ -21,20 +21,77 @@ st.set_page_config(
 # -------------------- CUSTOM CSS --------------------
 # -------------------- CUSTOM CSS --------------------
 # -------------------- CUSTOM CSS --------------------
+# -------------------- CUSTOM CSS --------------------
 st.markdown("""
 <style>
+    /* MAKE EVERY SINGLE THING BOLD AND DARK */
+    * {
+        font-weight: 700 !important;
+        color: #000000 !important;
+    }
+    
+    /* Specific targeting for Streamlit components */
+    .stApp, .stApp * {
+        font-weight: 700 !important;
+        color: #000000 !important;
+    }
+    
+    /* Headers - Extra Bold */
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 900 !important;
+        color: #000000 !important;
+    }
+    
+    /* Metrics - Ultra Bold */
+    [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
+        font-weight: 900 !important;
+        color: #000000 !important;
+    }
+    
+    /* Sidebar - Bold White Text */
+    .stSidebar * {
+        font-weight: 700 !important;
+        color: #ffffff !important;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        font-weight: 800 !important;
+    }
+    
+    /* Select boxes, sliders, inputs */
+    .stSelectbox, .stSlider, .stTextInput, .stNumberInput {
+        font-weight: 700 !important;
+        color: #000000 !important;
+    }
+    
+    /* Dataframes and tables */
+    .stDataFrame, .stTable {
+        font-weight: 700 !important;
+    }
+    
+    /* Info boxes, success, warning messages */
+    .stAlert, .stInfo, .stSuccess, .stWarning, .stError {
+        font-weight: 700 !important;
+        color: #000000 !important;
+    }
+    
+    /* Radio buttons, checkboxes */
+    .stRadio, .stCheckbox {
+        font-weight: 700 !important;
+    }
+    
     /* Main app background */
     .stApp {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #2c3e50 !important;
-        font-size: 1.1rem !important;
+        font-size: 1.2rem !important;
     }
     
-    /* Main header styling - ENHANCED */
+    /* Main header styling */
     .main-header {
         font-size: 3.5rem !important;
-        font-weight: 800 !important;
+        font-weight: 900 !important;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -43,36 +100,11 @@ st.markdown("""
         text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
     
-    /* Enhanced section headers */
-    h1, h2, h3 {
-        color: #2c3e50 !important;
-        font-weight: 700 !important;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-    }
-    
-    /* Make metric values stand out */
-    [data-testid="stMetricValue"] {
-        font-size: 2rem !important;
-        font-weight: 800 !important;
-        color: #667eea !important;
-    }
-    
-    [data-testid="stMetricLabel"] {
-        font-size: 1.2rem !important;
-        font-weight: 600 !important;
-        color: #2c3e50 !important;
-    }
-    
-    /* Sidebar styling */
-    .stSidebar {
-        background: linear-gradient(180deg, #2c3e50 0%, #3498db 100%);
-        font-size: 1.1rem !important;
-    }
-    
+    /* Sidebar header */
     .sidebar-header {
-        color: white !important;
-        font-size: 1.5rem !important;
-        font-weight: 600 !important;
+        color: #ffffff !important;
+        font-size: 1.8rem !important;
+        font-weight: 900 !important;
         padding: 1rem;
         text-align: center;
         background: rgba(0,0,0,0.2);
@@ -95,12 +127,12 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     }
     
-    /* Button styling - ENHANCED */
+    /* Button styling */
     .stButton > button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        font-weight: 700 !important;
-        font-size: 1.2rem !important;
+        font-weight: 800 !important;
+        font-size: 1.3rem !important;
         border: none;
         border-radius: 8px;
         padding: 0.8rem 1.5rem;
@@ -112,15 +144,6 @@ st.markdown("""
     .stButton > button:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-    
-    /* Info box styling */
-    .stInfo {
-        background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
-        border-radius: 12px;
-        padding: 1.5rem;
-        border-left: 4px solid #00bcd4;
-        font-size: 1.1rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
